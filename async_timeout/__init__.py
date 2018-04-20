@@ -90,6 +90,21 @@ class timeout:
         self._task.cancel()
         self._cancelled = True
 
+    def reset(self, timeout=None):
+        if timeout:
+            self._timeout = timeout
+
+        self._cancel_handler.cancel()
+
+        if self._timeout <= 0:
+            self._loop.call_soon(self._cancel_task)
+            return self
+
+        self._cancel_at = self._loop.time() + self._timeout
+        self._cancel_handler = self._loop.call_at(
+            self._cancel_at, self._cancel_task
+        )
+
 
 def current_task(loop):
     if PY_37:
